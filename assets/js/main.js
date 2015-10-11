@@ -1,100 +1,122 @@
-/*
-	Spectral by HTML5 UP
-	html5up.net | @n33co
-	Free for personal and commercial use under the CCA 3.0 license (html5up.net/license)
-*/
+$(function() {
 
-(function($) {
+    /*---------------------------------------*/
+    /*  PAGE LOADER
+    /*---------------------------------------*/
+    $(window).load(function(){
+        $('#page-loader').fadeOut('fast');
+    });
+    
+    
+    /*---------------------------------------*/
+    /*  JQUERY FOR PAGE SCROLLING FEATURE
+    /*  requires jQuery Easing plugin
+    /*---------------------------------------*/
+    var pageScroll = function(){
+        $('.page-scroll a').bind('click', function(e){
+            e.preventDefault();
 
-	skel
-		.breakpoints({
-			xlarge:	'(max-width: 1680px)',
-			large:	'(max-width: 1280px)',
-			medium:	'(max-width: 980px)',
-			small:	'(max-width: 736px)',
-			xsmall:	'(max-width: 480px)'
-		});
+            var $anchor = $(this);
 
-	$(function() {
+            var offset = $('body').attr('data-offset');
+            
+            if($('.navbar.navbar-fixed-top').hasClass('side-menu') && $(window).width() >= 992){
+                $('body').data('offset', 1);
+                offset = $('body').data('offset');
+            }
 
-		var	$window = $(window),
-			$body = $('body'),
-			$wrapper = $('#page-wrapper'),
-			$banner = $('#banner'),
-			$header = $('#header');
+            $('html, body').stop().animate({
+                scrollTop: $($anchor.attr('href')).offset().top - (offset - 1)
+            }, 1500, 'easeInOutExpo');
+        });
+    };
+    
+    
+    /*---------------------------------------*/
+    /*  STICKY NAVBAR
+    /*---------------------------------------*/
+    $('.navbar.navbar-fixed-top').sticky({topSpacing: 0});
+    
+    var stickySideMenu = function(){
+        var navbar = $('.navbar.navbar-fixed-top.side-menu');
+        
+        if ($(window).width() >= 992) {        
+            navbar.unstick();
+        }
+        else
+        {
+            navbar.unstick();
+            navbar.sticky({topSpacing: 0});
+        }
+    };
+    
+    pageScroll();
+    stickySideMenu();
+    
+    $(window).smartresize(function(){
+        pageScroll();
+        stickySideMenu();
+    });
+    
+    $('.navbar-trigger-open').click(function(e) {
+        e.preventDefault();
+        $('.navbar.side-menu').toggleClass('active');
+        $('body.push.push-left').toggleClass('pushed-left');
+        $('body.push.push-right').toggleClass('pushed-right');
+    });
 
-		// Disable animations/transitions until the page has loaded.
-			$body.addClass('is-loading');
+    $('.navbar-trigger-close').click(function(e) {
+        e.preventDefault();
+        $('.navbar.side-menu').toggleClass('active');
+        $('body.push.push-left').toggleClass('pushed-left');
+        $('body.push.push-right').toggleClass('pushed-right');
+    });
+    
 
-			$window.on('load', function() {
-				window.setTimeout(function() {
-					$body.removeClass('is-loading');
-				}, 100);
-			});
-
-		// Mobile?
-			if (skel.vars.mobile)
-				$body.addClass('is-mobile');
-			else
-				skel
-					.on('-medium !medium', function() {
-						$body.removeClass('is-mobile');
-					})
-					.on('+medium', function() {
-						$body.addClass('is-mobile');
-					});
-
-		// Fix: Placeholder polyfill.
-			$('form').placeholder();
-
-		// Prioritize "important" elements on medium.
-			skel.on('+medium -medium', function() {
-				$.prioritize(
-					'.important\\28 medium\\29',
-					skel.breakpoint('medium').active
-				);
-			});
-
-		// Scrolly.
-			$('.scrolly')
-				.scrolly({
-					speed: 1500,
-					offset: $header.outerHeight()
-				});
-
-		// Menu.
-			$('#menu')
-				.append('<a href="#menu" class="close"></a>')
-				.appendTo($body)
-				.panel({
-					delay: 500,
-					hideOnClick: true,
-					hideOnSwipe: true,
-					resetScroll: true,
-					resetForms: true,
-					side: 'right',
-					target: $body,
-					visibleClass: 'is-menu-visible'
-				});
-
-		// Header.
-			if (skel.vars.IEVersion < 9)
-				$header.removeClass('alt');
-
-			if ($banner.length > 0
-			&&	$header.hasClass('alt')) {
-
-				$window.on('resize', function() { $window.trigger('scroll'); });
-
-				$banner.scrollex({
-					bottom:		$header.outerHeight() + 1,
-					terminate:	function() { $header.removeClass('alt'); },
-					enter:		function() { $header.addClass('alt'); },
-					leave:		function() { $header.removeClass('alt'); }
-				});
-
-			}
-
-	});
-
-})(jQuery);
+    /*---------------------------------------*/
+    /*  OWL CAROUSEL
+    /*---------------------------------------*/
+    $('#carousel-who-we-are').owlCarousel({
+        autoPlay: true,
+        slideSpeed: 300,
+        paginationSpeed: 400,
+        singleItem: true
+    });
+    
+    
+    /*---------------------------------------*/
+    /*  CONTACT FORM REQUEST
+    /*---------------------------------------*/
+    $('.validate').validate();
+    
+    $(document).on('submit', '#contact-us-form', function(e){
+        e.preventDefault();
+        
+        $('.form-respond').html("<div class='content-message'><i class='fa fa-refresh fa-spin fa-4x'></i> <h2>Loading..</h2></div>");
+        
+        $.ajax({
+            url: $('#contact-us-form').attr('action'),
+            type: 'post',
+            dataType: 'json',
+            data: $(this).serialize(),
+            success: function(data){
+                if (data == true){
+                    $('.form-respond').html("<div class='content-message'><i class='fa fa-rocket fa-4x'></i> <h2>Email Sent Successfully</h2> <p>Your message has been submitted.</p></div>");
+                } else {
+                    $('.form-respond').html("<div class='content-message'><i class='fa fa-exclamation-circle fa-4x'></i> <h2>Error sending</h2> <p>Try again later.</p></div>");
+                }
+                
+                setTimeout(function(){
+                    $('.form-respond').html("");
+                },3000);
+            },
+            error: function(xhr, err){
+                $('.form-respond').html("<div class='content-message'><i class='fa fa-exclamation-circle fa-4x'></i> <h2>Error sending</h2> <p>Try again later.</p></div>");
+                
+                setTimeout(function(){
+                    $('.form-respond').html("");
+                },3000);
+            }
+        });
+    });
+});
